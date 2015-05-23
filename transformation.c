@@ -31,17 +31,17 @@ void homography_transformation(IplImage* src, CvPoint2D32f* srcQuad,char* out_fi
 	CvPoint2D32f dstQuad[4]; //Destination matrix
     CvMat* warp_matrix = cvCreateMat(3,3,CV_32FC1);     // transformation matrix
     IplImage* dst = cvCloneImage(src);   // clone image  
-	srcQuad[0].x = 284;   //src Top left
-	srcQuad[0].y = 106;
+	srcQuad[0].x = 1290;   //src Top left
+	srcQuad[0].y = 1430;
 
-	srcQuad[1].x = 396;   //src Top right
-	srcQuad[1].y = 107;
+	srcQuad[1].x = 3050;   //src Top right
+	srcQuad[1].y = 1430;
 
 	srcQuad[2].x = 77;   //src Bottom left
-	srcQuad[2].y = 177;
+	srcQuad[2].y = 3200;
 
-	srcQuad[3].x = 620;   //src Bottom right
-	srcQuad[3].y = 177;
+	srcQuad[3].x = 4326;   //src Bottom right
+	srcQuad[3].y = 3200;
 
 	    //coordinates of rectangle in src image 
     dstQuad[0].x = 0;       //dst Top left
@@ -58,9 +58,14 @@ void homography_transformation(IplImage* src, CvPoint2D32f* srcQuad,char* out_fi
     // perspective transformation. Parameters: source, destination, warp_matrix, 
 	//type of interpolation: (CV_INTER_LINEAR, CV_INTER_AREA, CV_INTER_CUBIC, CV_INTER_LANCZOS4)
   	///Set all scalar with the same value. 0 means the black color of border
-	cvWarpPerspective(src, dst, warp_matrix, CV_INTER_LANCZOS4, cvScalarAll(0));
+	cvWarpPerspective(src, dst, warp_matrix, CV_INTER_LINEAR, cvScalarAll(0));
 	cvNamedWindow( out_filename, 1 );//Window name and autosize YES (1)
 	cvShowImage( out_filename, dst ); //Show the dst image on window
+int p[3];
+p[0]=CV_IMWRITE_JPEG_QUALITY;
+p[1]=100;
+p[2]=0;
+	cvSaveImage(out_filename,dst, p);
 //close and destroy all stuff
 	cvWaitKey(0);
 
