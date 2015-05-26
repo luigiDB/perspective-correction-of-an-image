@@ -67,7 +67,7 @@ void change_brightness_from_to(CvMat* image, int alpha, int beta, CvPoint2D32f* 
 	image->cols *= 3;
 
 	fprintf(stderr,"Top left [%f][%f], Top right [%f][%f], bottom left [%f][%f]\n",srcQuad[0].x,srcQuad[0].y,srcQuad[1].x, srcQuad[1].y,  srcQuad[2].x, srcQuad[2].y); 
-	fprintf(stderr,"Only a part #Rows = %i #Column = %i\n", image->rows, image->cols);
+	printf("Only a part #Rows = %i #Column = %i\n", image->rows, image->cols);
 	 /// Do the operation new_image(i,j) = alpha*image(i,j) + beta
 	 for( y = srcQuad[0].y; y < srcQuad[2].y;  y++ ){//From top left to bottom left
 	 	for( x = srcQuad[0].x; x < srcQuad[1].x; x++ ){//From top left to top right
