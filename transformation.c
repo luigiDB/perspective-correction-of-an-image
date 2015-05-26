@@ -26,7 +26,7 @@ Where RMR5y.png is the input file and ciao.jpg is the output file.
 #include <stdio.h>
 
 #define AUTO_SIZE_YES 1
-
+#define JPEG_QUALITY 80
 void homography_transformation(IplImage* src, CvPoint2D32f* srcQuad,char* out_filename){//Input image, Edges, outputNameFile
 	CvPoint2D32f dstQuad[4]; //Destination matrix
     CvMat* warp_matrix = cvCreateMat(3,3,CV_32FC1);     // transformation matrix
@@ -61,10 +61,8 @@ void homography_transformation(IplImage* src, CvPoint2D32f* srcQuad,char* out_fi
 	cvWarpPerspective(src, dst, warp_matrix, CV_INTER_LINEAR, cvScalarAll(0));
 	cvNamedWindow( out_filename, 1 );//Window name and autosize YES (1)
 	cvShowImage( out_filename, dst ); //Show the dst image on window
-int p[3];
-p[0]=CV_IMWRITE_JPEG_QUALITY;//FORMAT
-p[1]=100;//QUALITY
-p[2]=0;//BOH
+int p[3]={CV_IMWRITE_JPEG_QUALITY,JPEG_QUALITY,0};//FORMAT, QUALITY, BOH
+
 	cvSaveImage(out_filename,dst, p);
 //close and destroy all stuff
 	cvWaitKey(0);
