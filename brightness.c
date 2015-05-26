@@ -5,7 +5,7 @@
 #include <stdio.h>
 
 
-#define N_BLOCKS 10
+#define N_BLOCKS 7
 #define JPEG_QUALITY 100
 
 void print_block_coordinates(CvPoint2D32f* srcQuad){
@@ -15,17 +15,30 @@ fprintf(stderr,"Block coordinates:\nTopLeft[%d][%d]	TopRight[%d][%d]\nBottomLeft
 
 //Given a certain block number, it return its coordinates.
 //The function need all the coordinates of the all blocks, which block where get the info and how many are the blocks.
-CvPoint2D32f* getBlock(CvPoint2D32f* all_blocks_coordinates, int which_block, int how_many_block){
-	CvPoint2D32f my_block_coordinates[3];
-	
-	my_block_coordinates[0].x=all_blocks_coordinates[which_block-1].x;//Top left
-	my_block_coordinates[0].y=all_blocks_coordinates[which_block-1].y;
-	
-	my_block_coordinates[1].x=all_blocks_coordinates[which_block].x;//Top right
-	my_block_coordinates[1].y=all_blocks_coordinates[which_block].y;
 
-	my_block_coordinates[2].x=all_blocks_coordinates[which_block+how_many_block].x;//Bottom left
-	my_block_coordinates[2].y=all_blocks_coordinates[which_block+how_many_block].y;
+CvPoint2D32f* get_block_coordinates(CvPoint2D32f* all_blocks_coordinates, int which_block, int n){
+	CvPoint2D32f my_block_coordinates[3];
+	int x;
+	if(which_block>(int)pow(n,2))
+	{
+	fprintf(stderr,"This block doesn't exist\n");
+	return NULL;
+	}
+
+	
+	if(which_block%n==0) x=2;
+	else x=1;
+
+	int top_left_coordinate=which_block+which_block/n-x;
+	my_block_coordinates[0].x=all_blocks_coordinates[top_left_coordinate].x;//Top left
+	my_block_coordinates[0].y=all_blocks_coordinates[top_left_coordinate].y;
+
+	my_block_coordinates[1].x=all_blocks_coordinates[top_left_coordinate+1].x;//Top right
+	my_block_coordinates[1].y=all_blocks_coordinates[top_left_coordinate+1].y;
+
+	my_block_coordinates[2].x=all_blocks_coordinates[top_left_coordinate+n+1].x;//Bottom left
+	my_block_coordinates[2].y=all_blocks_coordinates[top_left_coordinate+n+1].y;
+	printf("Block n°%d\n",which_block);
 	print_block_coordinates(my_block_coordinates);
 	return my_block_coordinates;
 }
@@ -57,6 +70,7 @@ int getBeta(CvMat* image, CvPoint2D32f* srcQuad){
 //This function prints the blocks coordinates
 void divide_in_blocks(CvMat* image, int n){
 	if(n<2) return;
+	int boh=49;
 	int n_coordinates=(int)pow(n+1,2);//
 	CvPoint2D32f all_blocks_coordinates[n_coordinates];
 	int step_width=image->cols/n;
@@ -88,8 +102,8 @@ void divide_in_blocks(CvMat* image, int n){
 			}
 			start_x=0;
 	}
-int which_block=7;
-getBlock(all_blocks_coordinates,which_block,n);
+
+getBlock(all_blocks_coordinates,boh,n);
 }
 
 
@@ -151,7 +165,7 @@ void change_brightness(CvMat* image, int alpha, int beta){
 	CvMat *new_image =cvCloneMat(image);
 	uchar pixval;
 	int x, y, c;
-	int p[3];
+	int p[]={CV_IMWRITE_JPEG_QUALITY,JPEG_QUALITY,0};
 	new_image->cols *= 3; 
 	image->cols *= 3;
 
@@ -179,10 +193,7 @@ void change_brightness(CvMat* image, int alpha, int beta){
 	 /// Show stuff
 	 cvShowImage("Original Image", image);
 	 cvShowImage("New Image", new_image);
-
-	 p[0]=CV_IMWRITE_JPEG_QUALITY;
-	 p[1]=JPEG_QUALITY;
-	 p[2]=0;
+	
 	 cvSaveImage("result.jpg",new_image, p);
 
 	 /// Wait until user press some key
