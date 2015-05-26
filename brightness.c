@@ -8,16 +8,30 @@
 #define N_BLOCKS 10
 #define JPEG_QUALITY 100
 
-
-
 void print_block_coordinates(CvPoint2D32f* srcQuad){
-fprintf(stderr,"Block coordinates:\nTopLeft[%d][%d]	TopRight[%d][%d]\nBottomLeft[%d][%d]	BottomRight[%d][%d]\n",(int)srcQuad[0].x, (int)srcQuad[0].y, (int)srcQuad[1].x, (int)srcQuad[1].y, (int)srcQuad[2].x, (int)srcQuad[2].y, (int)srcQuad[3].x, (int)srcQuad[3].y);
+fprintf(stderr,"Block coordinates:\nTopLeft[%d][%d]	TopRight[%d][%d]\nBottomLeft[%d][%d]	BottomRight[%d][%d]\n",(int)srcQuad[0].x, (int)srcQuad[0].y, (int)srcQuad[1].x, (int)srcQuad[1].y, (int)srcQuad[2].x, (int)srcQuad[2].y, (int)srcQuad[1].x, (int)srcQuad[2].y);
 }
 
 
+//Given a certain block number, it return its coordinates.
+//The function need all the coordinates of the all blocks, which block where get the info and how many are the blocks.
+CvPoint2D32f* getBlock(CvPoint2D32f* all_blocks_coordinates, int which_block, int how_many_block){
+	CvPoint2D32f my_block_coordinates[3];
+	
+	my_block_coordinates[0].x=all_blocks_coordinates[which_block-1].x;//Top left
+	my_block_coordinates[0].y=all_blocks_coordinates[which_block-1].y;
+	
+	my_block_coordinates[1].x=all_blocks_coordinates[which_block].x;//Top right
+	my_block_coordinates[1].y=all_blocks_coordinates[which_block].y;
+
+	my_block_coordinates[2].x=all_blocks_coordinates[which_block+how_many_block].x;//Bottom left
+	my_block_coordinates[2].y=all_blocks_coordinates[which_block+how_many_block].y;
+	print_block_coordinates(my_block_coordinates);
+	return my_block_coordinates;
+}
+
 //Get the average brightness from an (sub)image given the coordinates.
 //The image is passed to the fuction in grayscale. 
-
 int getBeta(CvMat* image, CvPoint2D32f* srcQuad){
 	unsigned int beta, x, y;
 	unsigned int height_block=srcQuad[2].y-srcQuad[0].y;
@@ -43,50 +57,39 @@ int getBeta(CvMat* image, CvPoint2D32f* srcQuad){
 //This function prints the blocks coordinates
 void divide_in_blocks(CvMat* image, int n){
 	if(n<2) return;
-	CvPoint2D32f srcQuad[3]; //Source corners.(Top left, top right, bottom left)
+	int n_coordinates=(int)pow(n+1,2);//
+	CvPoint2D32f all_blocks_coordinates[n_coordinates];
 	int step_width=image->cols/n;
 	int step_height=image->rows/n;
-	int n_blocks=pow(n,2);//How many blocks I have (n^2)
-	int change_width=image->cols%n;//The width and the height not always are multiple of n. The change (Il resto) of pixel will be spreaded over the block (x and y)
+//The width and the height not always are multiple of n. The change (Il resto) of pixel will be spreaded over the block (x and y)
+	int change_width=image->cols%n;
 	int change_height=image->rows%n;
 	//The image will have (n+1)^2 blocks. Each block will have the following dimension: step_width (+ change_width) x step_height (+ change_height)
-	printf("Blocks coordinates:\n");
-	int i,j;
+	int x,y;
 	int start_x=0;
 	int start_y=0;
-
-	for(i=0; i<3; i++){
-		srcQuad[i].x=0;
-		srcQuad[i].y=0;
-	}
-
-	for(i=0; i<=n; i++){
+	int k=0;
+	for(x=0; x<=n; x++){//Row for cycle
 		int change_width_tmp=change_width;
-		for(j=0; j<=n; j++){
-			//
-			srcQuad[0].x=start_x;//Top left coordinates
-			srcQuad[0].y=start_y;
-
+		for(y=0; y<=n; y++){//Column for cycle
+			all_blocks_coordinates[k].x=start_x;
+			all_blocks_coordinates[k].y=start_y;
+			k++;
 			start_x+=step_width;
-
-			srcQuad[1].x=start_x;//Top right coordinates
-			srcQuad[1].y=srcQuad[0].y;
-
 			if(change_width_tmp>0){ 
-				start_x++;
+				start_x++;;
 				change_width_tmp--;
 				}
 			}
 			start_y+=+step_height;
-			srcQuad[2].x=srcQuad[0].x;//Bottom left coordinates
-			srcQuad[2].y=start_y;
-
 			if(change_height>0){
 				start_y++;
 				change_height--;
 			}
 			start_x=0;
 	}
+int which_block=7;
+getBlock(all_blocks_coordinates,which_block,n);
 }
 
 
@@ -110,7 +113,6 @@ void change_brightness_from_to(CvMat* image, int alpha, int beta, CvPoint2D32f* 
 	new_image->cols *= 3; 
 	image->cols *= 3;
 
-	//fprintf(stderr,"Top left [%d][%d], Top right [%d][%d], bottom left [%d][%d]\n",srcQuad[0].x,srcQuad[0].y,srcQuad[1].x, srcQuad[1].y,  srcQuad[2].x, srcQuad[2].y); 
 	 /// Do the operation new_image(i,j) = alpha*image(i,j) + beta
 	 for( y = (int)srcQuad[0].y; y < (int)srcQuad[2].y;  y++ ){//From top left to bottom left
 	 	for( x = (int)srcQuad[0].x; x < (int)srcQuad[1].x; x++ ){//From top left to top right
@@ -215,9 +217,9 @@ int main( int argc, char** argv )
 
     srcQuad[3].x = 620;   //src Bottom right
     srcQuad[3].y = 177;
-	getBeta(image_bn,srcQuad);
+	//getBeta(image_bn,srcQuad);
 
-	//divide_in_blocks(image,10);//This function gets the (n+1)^2 coordinates of the n^2 blocks
+	divide_in_blocks(image,N_BLOCKS);//This function gets the (n+1)^2 coordinates of the n^2 blocks
 	 /// Initialize values
 	 printf(" Basic Linear Transforms\n");
 	 printf("-------------------------\n");
