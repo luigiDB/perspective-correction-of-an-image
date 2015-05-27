@@ -5,9 +5,12 @@
 #include <stdio.h>
 
 
-#define N_BLOCKS 7
-#define JPEG_QUALITY 100
+#define N_BLOCKS 10
+#define JPEG_QUALITY 50
 
+const int PARAMETERS[3]={CV_IMWRITE_JPEG_QUALITY,JPEG_QUALITY,0}; 
+
+//Giving the coordinates in inputs, this functions prints them out
 void print_block_coordinates(CvPoint2D32f* srcQuad){
 fprintf(stderr,"Block coordinates:\nTopLeft[%d][%d]	TopRight[%d][%d]\nBottomLeft[%d][%d]	BottomRight[%d][%d]\n",(int)srcQuad[0].x, (int)srcQuad[0].y, (int)srcQuad[1].x, (int)srcQuad[1].y, (int)srcQuad[2].x, (int)srcQuad[2].y, (int)srcQuad[1].x, (int)srcQuad[2].y);
 }
@@ -15,11 +18,10 @@ fprintf(stderr,"Block coordinates:\nTopLeft[%d][%d]	TopRight[%d][%d]\nBottomLeft
 
 //Given a certain block number, it return its coordinates.
 //The function need all the coordinates of the all blocks, which block where get the info and how many are the blocks.
-
 CvPoint2D32f* get_block_coordinates(CvPoint2D32f* all_blocks_coordinates, int which_block, int n){
-	CvPoint2D32f my_block_coordinates[3];
+	CvPoint2D32f* my_block_coordinates=(CvPoint2D32f*)calloc(3,sizeof(CvPoint2D32f));
 	int x;
-	if(which_block>(int)pow(n,2))
+	if(which_block>(int)pow(n,2) | which_block<1)
 	{
 	fprintf(stderr,"This block doesn't exist\n");
 	return NULL;
@@ -38,41 +40,32 @@ CvPoint2D32f* get_block_coordinates(CvPoint2D32f* all_blocks_coordinates, int wh
 
 	my_block_coordinates[2].x=all_blocks_coordinates[top_left_coordinate+n+1].x;//Bottom left
 	my_block_coordinates[2].y=all_blocks_coordinates[top_left_coordinate+n+1].y;
-	printf("Block n°%d\n",which_block);
-	print_block_coordinates(my_block_coordinates);
 	return my_block_coordinates;
 }
 
 //Get the average brightness from an (sub)image given the coordinates.
-//The image is passed to the fuction in grayscale. 
-int getBeta(CvMat* image, CvPoint2D32f* srcQuad){
+//The image is passed to the fuction must be in grayscale. 
+int get_beta(CvMat* image, CvPoint2D32f* srcQuad){
 	unsigned int beta, x, y;
 	unsigned int height_block=srcQuad[2].y-srcQuad[0].y;
 	unsigned int width_block=srcQuad[1].x-srcQuad[0].x;
 	unsigned int resolution_block=height_block*width_block;
 	unsigned int tmp=0;
 
-	printf("resolution_block=%d\n",resolution_block);
-	int p[]={CV_IMWRITE_JPEG_QUALITY,JPEG_QUALITY,0};
 	for(y=srcQuad[0].y; y<srcQuad[2].y; y++){
 		for(x=srcQuad[0].x; x<srcQuad[1].x; x++){
 	tmp+=CV_MAT_ELEM(*image, uchar, y, x);
 		}
 	}
-	print_block_coordinates(srcQuad);
 	beta=tmp/resolution_block;
-	printf("Average brightness block:%d\n",beta);	
-	cvSaveImage("resultBN.jpg",image, p);
 	return beta;
 }
 
-
-//This function prints the blocks coordinates
-void divide_in_blocks(CvMat* image, int n){
+//This function gets all the blocks coordinates
+CvPoint2D32f* get_all_coordinates(CvMat* image, int n){
 	if(n<2) return;
-	int boh=49;
-	int n_coordinates=(int)pow(n+1,2);//
-	CvPoint2D32f all_blocks_coordinates[n_coordinates];
+	int n_coordinates=(int)pow(n+1,2);
+	CvPoint2D32f* all_blocks_coordinates=(CvPoint2D32f*)calloc(n_coordinates,sizeof(CvPoint2D32f));
 	int step_width=image->cols/n;
 	int step_height=image->rows/n;
 //The width and the height not always are multiple of n. The change (Il resto) of pixel will be spreaded over the block (x and y)
@@ -103,7 +96,7 @@ void divide_in_blocks(CvMat* image, int n){
 			start_x=0;
 	}
 
-getBlock(all_blocks_coordinates,boh,n);
+	return all_blocks_coordinates;
 }
 
 
@@ -117,19 +110,20 @@ uchar saturate(uchar pixel, double alpha, int beta){
 }
 
 //This function change the contrast (alpha) and brightness (beta) to a some area of image. The corner are defined in srcQuad
-//It works but has some strange behavious. To fix
-void change_brightness_from_to(CvMat* image, int alpha, int beta, CvPoint2D32f* srcQuad){
+//Some problem with number of columns
+CvMat* change_brightness_single_block(CvMat* image, int alpha, int beta, CvPoint2D32f* srcQuad){
 	
 	CvMat *new_image =cvCloneMat(image);
 	uchar pixval;
 	int x, y, c;
-	int p[3];
+
 	new_image->cols *= 3; 
 	image->cols *= 3;
-
+	int top_right=(int)srcQuad[1].x*3;//I must 
+	int top_left=(int)srcQuad[0].x*3;
 	 /// Do the operation new_image(i,j) = alpha*image(i,j) + beta
-	 for( y = (int)srcQuad[0].y; y < (int)srcQuad[2].y;  y++ ){//From top left to bottom left
-	 	for( x = (int)srcQuad[0].x; x < (int)srcQuad[1].x; x++ ){//From top left to top right
+	 for( y = (int)srcQuad[0].y; y < (int)srcQuad[2].y;  y++ ){
+	 	for( x = top_left; x <top_right; x++ ){//FROM Top left TO Top Right
 	 		//leggo il valore del pixel dell'immagine originale
 			pixval = CV_MAT_ELEM(*image, uchar, y, x);
 			//ci applico la formula alpha * x + beta
@@ -138,34 +132,20 @@ void change_brightness_from_to(CvMat* image, int alpha, int beta, CvPoint2D32f* 
 			CV_MAT_ELEM(*new_image, uchar, y, x) = pixval;
 	    	}
 	 }
-	 printf("#Rows = %i #Column = %i\n", y, x);
+
 	 //Rimetto il numero di colonne al loro valore originale, altrimenti non si riesce a visualizzare l'immagine
 	 image->cols /= 3;
-	 new_image->cols /= 3; 
-	 
-	/// Create Windows
-	 cvNamedWindow("Original Image", 1);
-	 cvNamedWindow("New Image", 1);
-
-	 p[0]=CV_IMWRITE_JPEG_QUALITY;
-	 p[1]=JPEG_QUALITY;
-	 p[2]=0;
-	 cvSaveImage("result2.jpg",new_image, p);
-
-	 /// Wait until user press some key
-	cvReleaseMat(&new_image);
-	cvWaitKey(0);
-	cvDestroyAllWindows();
+	new_image->cols /= 3; 
+	return new_image;
 }
 
 //This function changes the brightness and the constrast to ALL image
-void change_brightness(CvMat* image, int alpha, int beta){
+void change_brightness(CvMat* image, int alpha, int beta){//Alpha between 1 and 3, beta between 1 and 100
 	
 
 	CvMat *new_image =cvCloneMat(image);
 	uchar pixval;
 	int x, y, c;
-	int p[]={CV_IMWRITE_JPEG_QUALITY,JPEG_QUALITY,0};
 	new_image->cols *= 3; 
 	image->cols *= 3;
 
@@ -194,7 +174,7 @@ void change_brightness(CvMat* image, int alpha, int beta){
 	 cvShowImage("Original Image", image);
 	 cvShowImage("New Image", new_image);
 	
-	 cvSaveImage("result.jpg",new_image, p);
+	 cvSaveImage("result.jpg",new_image, PARAMETERS);
 
 	 /// Wait until user press some key
 	cvReleaseMat(&new_image);
@@ -205,42 +185,38 @@ void change_brightness(CvMat* image, int alpha, int beta){
 
 int main( int argc, char** argv )
 {
+
+	//Input values: Aplha, Beta, N_BLOCKS (FROM 1 (All image) to N (N^2 small blocks))
 	 int alpha; /**< Simple contrast control */
 	 int beta;  /**< Simple brightness control */
 	 uchar pixval;
-	 int x, y, c;
-	 /// Read image given by user
-	 CvMat *image = cvLoadImageM( argv[1], 1);
-	 CvMat *image_bn=cvLoadImageM(argv[1], CV_LOAD_IMAGE_GRAYSCALE );
+	 int x, y, c,i;
+	CvMat *image = cvLoadImageM( argv[1], 1);
+	CvMat *image_bn=cvLoadImageM(argv[1], CV_LOAD_IMAGE_GRAYSCALE );//Load the image in grayscale version.
+
+
+	CvPoint2D32f* all_blocks_coordinates=NULL;
 	if(image==NULL | image_bn==NULL){
 	fprintf(stderr, "No input image!\n");
 	exit(0);
 	}
-	CvPoint2D32f srcQuad[4]; //Source corners.
-	srcQuad[0].x = 284;   //src Top left
-    srcQuad[0].y = 106;
+	CvMat *new_image =cvCloneMat(image);
+	all_blocks_coordinates=(CvPoint2D32f*)calloc((int)pow(N_BLOCKS+1,2),sizeof(CvPoint2D32f));
+	all_blocks_coordinates=get_all_coordinates(new_image,N_BLOCKS);//This function gets the (n+1)^2 coordinates of the n^2 blocks
 
-    srcQuad[1].x = 396;   //src Top right
-    srcQuad[1].y = 106;
+	/*for(i=0; i<100; i++){
+	//It works ma è pesante
+	new_image=change_brightness_single_block(new_image,3, i, get_block_coordinates(all_blocks_coordinates,i+1,N_BLOCKS));
+	}*///cvSaveImage("birghtnessFuzzy.jpg",new_image, PARAMETERS);
 
-    srcQuad[2].x = 284;   //src Bottom left
-    srcQuad[2].y = 177;
-
-    srcQuad[3].x = 620;   //src Bottom right
-    srcQuad[3].y = 177;
-	//getBeta(image_bn,srcQuad);
-
-	divide_in_blocks(image,N_BLOCKS);//This function gets the (n+1)^2 coordinates of the n^2 blocks
-	 /// Initialize values
-	 printf(" Basic Linear Transforms\n");
-	 printf("-------------------------\n");
-	 printf("* Enter the alpha value [1.0-3.0]: ");
-	 scanf("%i", &alpha);
-	 printf("* Enter the beta value [0-100]: ");
-	 getchar(); 		//Ignore the '\n' 
-	 scanf("%i", &beta);
-	
-	 //change_brightness(image, alpha, beta);//Change the brightness of all image
-
+	//The image is passed to the fuction must be in grayscale. 
+	for(i=0; i<100; i++){
+	printf("Block n° %d. Average brightness:%d\n",i+1,get_beta(image_bn, get_block_coordinates(all_blocks_coordinates,i+1,N_BLOCKS)));
+	}
+	//Free stuff
+	cvReleaseMat(&new_image);
+	cvReleaseMat(&image);
+	cvReleaseMat(&image_bn);
+	free(all_blocks_coordinates);
 	 return 0;
 }
