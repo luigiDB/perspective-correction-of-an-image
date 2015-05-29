@@ -31,19 +31,6 @@ void homography_transformation(IplImage* src, CvPoint2D32f* srcQuad,char* out_fi
 	CvPoint2D32f dstQuad[4]; //Destination matrix
     CvMat* warp_matrix = cvCreateMat(3,3,CV_32FC1);     // transformation matrix
     IplImage* dst = cvCloneImage(src);   // clone image  
-	srcQuad[0].x = 1290;   //src Top left
-	srcQuad[0].y = 1430;
-
-	srcQuad[1].x = 3050;   //src Top right
-	srcQuad[1].y = 1430;
-
-	srcQuad[2].x = 77;   //src Bottom left
-	srcQuad[2].y = 3200;
-
-	srcQuad[3].x = 4326;   //src Bottom right
-	srcQuad[3].y = 3200;
-
-	    //coordinates of rectangle in src image 
     dstQuad[0].x = 0;       //dst Top left
     dstQuad[0].y = 0;
     dstQuad[1].x = src->width-1;  //dst Top right
@@ -60,19 +47,15 @@ void homography_transformation(IplImage* src, CvPoint2D32f* srcQuad,char* out_fi
   	///Set all scalar with the same value. 0 means the black color of border
 	cvWarpPerspective(src, dst, warp_matrix, CV_INTER_LINEAR, cvScalarAll(0));
 	cvNamedWindow( out_filename, 1 );//Window name and autosize YES (1)
-	cvShowImage( out_filename, dst ); //Show the dst image on window
 int p[3]={CV_IMWRITE_JPEG_QUALITY,JPEG_QUALITY,0};//FORMAT, QUALITY, BOH
 
 	cvSaveImage(out_filename,dst, p);
 //close and destroy all stuff
-	cvWaitKey(0);
 
 	cvReleaseMat(&warp_matrix);
 
 	cvReleaseImage(&src);
 	cvReleaseImage(&dst);
-
-	cvDestroyAllWindows();
 }
 
 int main( int argc, char** argv ) {
@@ -89,17 +72,17 @@ exit(0);
     CvPoint2D32f srcQuad[4]; //Source corners.
 //Corner of trapezoid. Arbitrary values.
 
-    srcQuad[0].x = 284;   //src Top left
-    srcQuad[0].y = 106;
+    srcQuad[0].x = 1450;   //src Top left
+    srcQuad[0].y = 591;
 
-    srcQuad[1].x = 396;   //src Top right
-    srcQuad[1].y = 107;
+    srcQuad[1].x = 3195;   //src Top right
+    srcQuad[1].y = 527;
 
-    srcQuad[2].x = 77;   //src Bottom left
-    srcQuad[2].y = 177;
+    srcQuad[2].x = 784;   //src Bottom left
+    srcQuad[2].y = 3220;
 
-    srcQuad[3].x = 620;   //src Bottom right
-    srcQuad[3].y = 177;
+    srcQuad[3].x = 3908;   //src Bottom right
+    srcQuad[3].y = 3174;
 
 homography_transformation(src,srcQuad,out_filename);
 }
