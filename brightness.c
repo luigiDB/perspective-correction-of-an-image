@@ -40,30 +40,30 @@ int** get_neighboor(int which_block, int n){
 
 //2nd check on neighboor blocks
 //They don't go outside the bound
-if(which_block-n-1>0) first_lev[0][0]=which_block-n-1;
-if(which_block-n>0)first_lev[0][1]=which_block-n;
-if(which_block-n+1>0)first_lev[0][2]=which_block-n+1;
+	if(which_block-n-1>0) first_lev[0][0]=which_block-n-1;
+	if(which_block-n>0)first_lev[0][1]=which_block-n;
+	if(which_block-n+1>0)first_lev[0][2]=which_block-n+1;
 
-if(which_block-1>0) first_lev[1][0]=which_block-1;
+	if(which_block-1>0) first_lev[1][0]=which_block-1;
 
-if(which_block+1<=tot_blocks)first_lev[1][2]=which_block+1;
+	if(which_block+1<=tot_blocks)first_lev[1][2]=which_block+1;
 
-if(which_block+n-1<=tot_blocks) first_lev[2][0]=which_block+n-1;
-if(which_block+n<=tot_blocks)first_lev[2][1]=which_block+n;
-if(which_block+n+1<=tot_blocks)first_lev[2][2]=which_block+n+1;
+	if(which_block+n-1<=tot_blocks) first_lev[2][0]=which_block+n-1;
+	if(which_block+n<=tot_blocks)first_lev[2][1]=which_block+n;
+	if(which_block+n+1<=tot_blocks)first_lev[2][2]=which_block+n+1;
 
 
-if((which_block-1)%n==0){//It is left border?
-	for(i=0; i<3; i++){
-	first_lev[i][0]=0;//I set to zero the element left to left border because they aren't present
+	if((which_block-1)%n==0){//It is left border?
+		for(i=0; i<3; i++){
+		first_lev[i][0]=0;//I set to zero the element left to left border because they aren't present
+		}
 	}
-}
 
-if(which_block%n==0){//Is right border?
-	for(i=0; i<3; i++){
-	first_lev[i][2]=0;//I set to zero the element left to left border because they aren't present
+	if(which_block%n==0){//Is right border?
+		for(i=0; i<3; i++){
+		first_lev[i][2]=0;//I set to zero the element left to left border because they aren't present
+		}
 	}
-}
 	//Print all the neighboor
 	for(i=0; i<3; i++){
 		for(j=0; j<3; j++){
@@ -71,7 +71,7 @@ if(which_block%n==0){//Is right border?
 			}
 		printf("\n");
 		}
-printf("\n\n");
+	printf("\n\n");
 
 return first_lev;
 }
