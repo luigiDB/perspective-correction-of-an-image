@@ -265,6 +265,19 @@ void change_brightness(CvMat* image, int alpha, int beta){//Alpha between 1 and 
 }
 
 
+/*
+* Input: image_yuv, which_block, coordinates_matrix 
+* Output: 1 or -1 if error
+*/
+int bright_corrections(){}
+
+/*
+* Input: Num_blocks, starting_block
+* Output: Array_Indexes_block
+*/
+int* select_correction_order(){}
+
+
 int main( int argc, char** argv )
 {
 

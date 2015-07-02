@@ -1,0 +1,13 @@
+1) Sistemare codice di rettificazione: racchiudere dentro una funzione che verrà chiamata da un main unico.
+2) Estrarre la parte che ci serve dal codice LCC (per ora solo RGB, successivamente sulla YUV)
+3) Finire codice "brightness.c" implementando la strategia di correzione della luminosità seguente:
+	a) Creare una matrice di interi, dove ogni elemento è la luminosità media del relativo blocco
+	b) Cercare il blocco con luminosità massima/minima (due diverse strategie) 
+	c) Calcolare la luminosità media con i blocchi vicini, e applicare la correzione al blocco corrente (correzione Y_new = Y_old + beta)
+	d) Ricorsivamente viene applicato a tutti i vicini di tale blocco, partendo dal vicino (0,0) al (1,0) ruotando in senso orario (su questo si possono provare 		delle varianti).
+
+4) Documentazione: 
+	a) Introduzione all'applicazione
+	b) Come si usa
+	c) Come funziona (algoritmi)
+	d) Risultati ottenuti
