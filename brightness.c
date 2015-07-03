@@ -29,7 +29,8 @@ int** get_neighboor(int which_block, int n){
 	int tot_blocks=(int)pow(n,2);
 
 	int** first_lev=(int**)calloc(3,sizeof(int));
-	for(i=0; i<3; i++)	first_lev[i]=(int*)calloc(3,sizeof(int));//It's a 3x3 matrix
+	for(i=0; i<3; i++)	
+		first_lev[i]=(int*)calloc(3,sizeof(int));//It's a 3x3 matrix
 
 	first_lev[1][1]=which_block;
 
