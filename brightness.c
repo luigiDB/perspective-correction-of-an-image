@@ -5,7 +5,7 @@
 #include <stdio.h>
 
 
-#define N_BLOCKS 10//This variable will be an input (?)
+#define N_BLOCKS 10	//This variable will be an input (?)
 #define JPEG_QUALITY 50
 
 //This function prints out the info about the image which is passed as parameter
@@ -19,7 +19,8 @@ const int PARAMETERS[3]={CV_IMWRITE_JPEG_QUALITY,JPEG_QUALITY,0}; //Format, qual
 
 //Giving the coordinates in inputs, this functions prints them out
 void print_block_coordinates(CvPoint2D32f* srcQuad){
-fprintf(stderr,"Block coordinates:\nTopLeft[%d][%d]	TopRight[%d][%d]\nBottomLeft[%d][%d]	BottomRight[%d][%d]\n",(int)srcQuad[0].x, (int)srcQuad[0].y, (int)srcQuad[1].x, (int)srcQuad[1].y, (int)srcQuad[2].x, (int)srcQuad[2].y, (int)srcQuad[1].x, (int)srcQuad[2].y);
+	fprintf(stderr,"Block coordinates:\nTopLeft[%d][%d]	TopRight[%d][%d]\nBottomLeft[%d][%d]	BottomRight[%d][%d]\n", \
+	(int)srcQuad[0].x, (int)srcQuad[0].y, 	(int)srcQuad[1].x, (int)srcQuad[1].y, (int)srcQuad[2].x, (int)srcQuad[2].y, (int)srcQuad[1].x, (int)srcQuad[2].y);
 }
 
 
@@ -66,15 +67,15 @@ int** get_neighboor(int which_block, int n){
 		}
 	}
 	//Print all the neighboor
-	for(i=0; i<3; i++){
+	/*for(i=0; i<3; i++){
 		for(j=0; j<3; j++){
 			printf("[%d]",first_lev[i][j]);
 			}
 		printf("\n");
 		}
-	printf("\n\n");
+	printf("\n\n");*/
 
-return first_lev;
+	return first_lev;
 }
 
 //Given a certain block number, it return its coordinates.
@@ -143,6 +144,13 @@ CvMat* rgb2yuv(CvMat* image){
 	//cvSaveImage("yuv.jpg",dst, PARAMETERS);//Optional save of image
 	return dst;
 }
+//Conversion to YUV encoding to RGB
+CvMat* yuv2rgb(CvMat* image){
+	CvMat *dst=cvCloneMat(image);
+	cvCvtColor(image,dst,CV_YCrCb2RGB);	
+	//cvSaveImage("yuv.jpg",dst, PARAMETERS);//Optional save of image
+	return dst;
+}
 
 //This function gets all the blocks coordinates
 CvPoint2D32f* get_all_coordinates(CvMat* image, int n){
@@ -194,32 +202,29 @@ uchar saturate(uchar pixel, double alpha, int beta){
 //This function change the contrast (alpha) and brightness (beta) to a some area of image. The corner are defined in srcQuade
 //The image must be in YUV encoding and I have to modify the Y channel
 
-CvMat* change_brightness_single_block(CvMat* image_yuv, int alpha, int beta, CvPoint2D32f* srcQuad){
+int change_brightness_single_block(CvMat* image_yuv, int alpha, int beta, CvPoint2D32f* srcQuad){
 	
-	CvMat *new_image =cvCloneMat(image_yuv);
 	uchar pixval;
 	int x, y;
 
-	new_image->cols *= 3; 
 	image_yuv->cols *= 3;
 	int top_right=(int)srcQuad[1].x*3;//I must 
 	int top_left=(int)srcQuad[0].x*3;
 	 /// Do the operation new_image(i,j) = alpha*image(i,j) + beta
 	 for( y = (int)srcQuad[0].y; y < (int)srcQuad[2].y;  y++ ){
-	 	for( x = top_left; x <top_right; x++ ){//FROM Top left TO Top Right
+	 	for( x = top_left; x <top_right; x+=3 ){//FROM Top left TO Top Right
 	 		//leggo il valore del pixel dell'immagine originale
 			pixval = CV_MAT_ELEM(*image_yuv, uchar, y, x);
 			//ci applico la formula alpha * x + beta
 			pixval = saturate(pixval, alpha, beta);
 			//scrivo il valore nella solita posizione della nuova immagine
-			CV_MAT_ELEM(*new_image, uchar, y, x) = pixval;
+			CV_MAT_ELEM(*image_yuv, uchar, y, x) = pixval;
 	    	}
 	 }
 
 	 //Rimetto il numero di colonne al loro valore originale, altrimenti non si riesce a visualizzare l'immagine
-	 image_yuv->cols /= 3;
-	new_image->cols /= 3; 
-	return new_image;
+	image_yuv->cols /= 3;
+	return 1;
 }
 
 //This function changes the brightness and the constrast of ALL image
@@ -267,16 +272,125 @@ void change_brightness(CvMat* image, int alpha, int beta){//Alpha between 1 and 
 
 
 /*
-* Input: image_yuv, which_block, coordinates_matrix 
+* Input: YUV image, all blocks coordinates and the number of blocks
+* Output: An array, for each block the respective array element contains the average birghtness
+*/
+int* compute_bright_vector(CvMat* image_yuv, CvPoint2D32f* all_blocks_coordinates, int num_of_blocks){
+	int* vector;
+	int i;
+	CvPoint2D32f* temp_coord;
+	
+	if(image_yuv == NULL || all_blocks_coordinates == NULL || num_of_blocks == 0)
+		return NULL;
+	
+	vector = malloc(sizeof(int) * num_of_blocks * num_of_blocks);
+	
+	for(i = 1; i <= num_of_blocks * num_of_blocks; i++){
+		temp_coord = get_block_coordinates(all_blocks_coordinates, i, num_of_blocks);
+		vector[i-1] = get_avg_brightness_block(image_yuv, temp_coord);
+		free(temp_coord);
+	}
+	
+	return vector;
+}
+
+/*
+* Input: image_yuv, which_block, brightness vector,coordinates_matrix 
 * Output: 1 or -1 if error
 */
-int bright_corrections(){}
+int bright_corrections(CvMat* image_yuv, CvPoint2D32f* all_blocks_coordinates, int* bright_vector, int which_block, int num_of_blocks){
+	int** neighbors;
+	int bright_avg = 0;
+	int i, j;
+	int num_of_neighbors = 0;
+	CvPoint2D32f *central_block_coord;
+	int temp;
+	int old_block_brightness;
+	int beta;
+	
+	if(image_yuv == NULL || all_blocks_coordinates == NULL || which_block == 0 || num_of_blocks == 0)
+		return -1;
+	
+	/*Gets the IDs of neighbor blocks*/
+	neighbors = get_neighboor(which_block, num_of_blocks);
+	if(neighbors == NULL)
+		return -1;
+		
+	central_block_coord = get_block_coordinates(all_blocks_coordinates, which_block, num_of_blocks);
+	old_block_brightness = bright_vector[which_block];
+	
+	/*For each ID, computes the relative block's brightness and sums it in a variable*/
+	for(i = 0; i < 3; i++){
+		for(j = 0; j < 3; j++){				//Note that in neighbors[1][1] there is the central block ID.
+			if(neighbors[i][j] == 0) continue;
+			
+			temp = bright_vector[neighbors[i][j]-1];
+				
+			bright_avg += temp;
+			num_of_neighbors++;
+			
+		}
+	}
+	/*At the end computes the average value*/
+	bright_avg /= num_of_neighbors;
+	/*In order to apply the brightness correction to the central block we need the "beta" value*/
+	beta = bright_avg - old_block_brightness;
+	
+	temp = change_brightness_single_block(image_yuv, 1, beta, central_block_coord);
+	
+	free(central_block_coord);
+	free(neighbors);
+	return (temp == -1) ? -1 : 1;
+}
+
+
+//return 0 if not present 
+int check_presence(int* array, int value, int max_index){
+	//printf("check %i\n", value);
+	int i;
+	for(i=0 ; i <= max_index ; i++){
+		if( array[i] == value )
+			return 1;
+	}
+	return 0;
+}
 
 /*
 * Input: Num_blocks, starting_block
 * Output: Array_Indexes_block
 */
-int* select_correction_order(){}
+int* select_correction_order(int N, int start){
+	//politica di aggiornamento
+	//	scrivo e aumento index
+	
+	int* results = (int*)malloc(sizeof(int)*N*N);
+	int index = 0;
+	int** neighboor;
+	
+	results[index] = start;
+	index++;
+	
+	int i, j, k;
+	for(i=0 ; i < N*N ; i++){
+		//printf("a");
+		neighboor = get_neighboor(results[i], N);
+		if(neighboor == NULL){
+			return NULL;
+		}
+		for(j=0 ; j<3 ; j++){
+			for(k=0 ; k<3 ; k++){
+				if (check_presence(results, neighboor[j][k], index) == 0 && neighboor[j][k] != 0){
+					results[index] = neighboor[j][k];
+					index++;
+				}
+			}
+		}
+		
+		free(neighboor);
+	}
+	
+	return results;
+}
 
 
 int main( int argc, char** argv )
@@ -287,6 +401,12 @@ int main( int argc, char** argv )
 	// int beta;  /**< Simple brightness control */
 	CvMat *image = cvLoadImageM( argv[1], 1);
 	CvPoint2D32f* all_blocks_coordinates=NULL;
+	int* brightness_vector;
+	int* block_order;
+	int i;
+	int max_bright = 0, block_index;
+	int p[3];
+	
 	if(image==NULL){
 	fprintf(stderr, "No input image!\n");
 	exit(0);
@@ -294,14 +414,49 @@ int main( int argc, char** argv )
 	//int tot_blocks=(int)pow(N_BLOCKS,2);
 	CvMat *new_image =cvCloneMat(image);
 	CvMat* image_yuv=rgb2yuv(image);
+	CvMat *result;
 
 	all_blocks_coordinates=(CvPoint2D32f*)calloc((int)pow(N_BLOCKS+1,2),sizeof(CvPoint2D32f));
 	all_blocks_coordinates=get_all_coordinates(new_image,N_BLOCKS);//This function gets the (n+1)^2 coordinates of the n^2 blocks
 	
+	brightness_vector = compute_bright_vector(image_yuv,  all_blocks_coordinates, N_BLOCKS);
+	
+	for(i = 0; i < N_BLOCKS * N_BLOCKS; i++){
+		printf("BEFORE: Brightness of block %i = %i\n", i+1, brightness_vector[i]);
+		if(brightness_vector[i] > max_bright){
+			max_bright = brightness_vector[i];
+			block_index = i+1;
+		}
+
+	}
+	block_order = select_correction_order(N_BLOCKS, block_index);
+	
+	for(i = 0; i < N_BLOCKS * N_BLOCKS; i++){
+		printf("%i ", block_order[i]);
+		bright_corrections(image_yuv, all_blocks_coordinates, brightness_vector, block_order[i], N_BLOCKS);
+	}
+	
+	free(brightness_vector);
+	brightness_vector = compute_bright_vector(image_yuv,  all_blocks_coordinates, N_BLOCKS);
+	
+	for(i = 0; i < N_BLOCKS * N_BLOCKS; i++){
+		printf("AFTER: Brightness of block %i = %i\n", i+1, brightness_vector[i]);
+	}
+	
+	result = yuv2rgb(image_yuv);
+	
+	p[0]=CV_IMWRITE_JPEG_QUALITY;
+	p[1]=100;
+	p[2]=0;
+	cvSaveImage("result.jpg",result, p);
+	
+	free(brightness_vector);
+	free(block_order);
 	//Free stuff
 	cvReleaseMat(&new_image);
 	cvReleaseMat(&image);
 	cvReleaseMat(&image_yuv);
+	cvReleaseMat(&result);
 	free(all_blocks_coordinates);
-	 return 0;
+	return 0;
 }
