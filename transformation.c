@@ -21,7 +21,7 @@ Where RMR5y.png is the input file and ciao.jpg is the output file.
 */
 
 #include <opencv/highgui.h>
-#include <opencv/cv.h>
+//#include <opencv/cv.h>
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -45,7 +45,7 @@ void homography_transformation(IplImage* src, CvPoint2D32f* srcQuad,char* out_fi
     // perspective transformation. Parameters: source, destination, warp_matrix, 
 	//type of interpolation: (CV_INTER_LINEAR, CV_INTER_AREA, CV_INTER_CUBIC, CV_INTER_LANCZOS4)
   	///Set all scalar with the same value. 0 means the black color of border
-	cvWarpPerspective(src, dst, warp_matrix, CV_INTER_LINEAR, cvScalarAll(0));
+	cvWarpPerspective(src, dst, warp_matrix, 1, cvScalarAll(0)); // 1 = CV_INTER_LINEAR
 	cvNamedWindow( out_filename, 1 );//Window name and autosize YES (1)
 int p[3]={CV_IMWRITE_JPEG_QUALITY,JPEG_QUALITY,0};//FORMAT, QUALITY, BOH
 
