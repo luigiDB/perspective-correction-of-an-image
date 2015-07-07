@@ -21,7 +21,7 @@ Where RMR5y.png is the input file and ciao.jpg is the output file.
 */
 
 #include <opencv/highgui.h>
-#include<opencv/cv.h>
+#include <opencv/cv.h>
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -72,17 +72,17 @@ exit(0);
     CvPoint2D32f srcQuad[4]; //Source corners.
 //Corner of trapezoid. Arbitrary values.
 
-    srcQuad[0].x = 1450;   //src Top left
-    srcQuad[0].y = 591;
+    srcQuad[0].x = 236;   //src Top left
+    srcQuad[0].y = 511;
 
-    srcQuad[1].x = 3195;   //src Top right
-    srcQuad[1].y = 527;
+    srcQuad[1].x = 1336;   //src Top right
+    srcQuad[1].y = 473;
 
-    srcQuad[2].x = 784;   //src Bottom left
-    srcQuad[2].y = 3220;
+    srcQuad[2].x = 1;   //src Bottom left
+    srcQuad[2].y = 1859;
 
-    srcQuad[3].x = 3908;   //src Bottom right
-    srcQuad[3].y = 3174;
+    srcQuad[3].x = 1507;   //src Bottom right
+    srcQuad[3].y = 1952;
 
 homography_transformation(src,srcQuad,out_filename);
 }
