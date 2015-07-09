@@ -28,13 +28,27 @@ void help(){
 	fprintf(stderr,"%s", options_msg);		
 }
 
-void check_comm_line_par(char opt, char* input_file, char* output_file, int *corners, int *mode){
-	
+int main(int argc, char** argv){
+	char opt;
+	char* input_file = NULL;
+	char* output_file = NULL;
+	int corners[N_CORNER];
 	char* corners_string = NULL;
 	char* corners_string_support = NULL;	//needed because strtok() destroy original string
+	int mode = NORMAL_MODE;
 	int i;
-
-	switch(opt){
+	
+	
+	//10 argumets are mandatory
+	if(argc < 3){
+		fprintf(stderr,"Too few argumets.\n");
+		help();
+		exit(0);
+	}
+	
+	
+	while((opt = getopt(argc, argv, "i:c:to:h")) != -1){
+		switch(opt){
 			case 'i':
 				input_file = strdup(optarg);
 				break;
@@ -54,7 +68,7 @@ void check_comm_line_par(char opt, char* input_file, char* output_file, int *cor
 				}
 				break;
 			case 't':
-				*mode = TEST_MODE;
+				mode = TEST_MODE;
 				break;
 			case 'o':
 				output_file = strdup(optarg);
@@ -67,47 +81,16 @@ void check_comm_line_par(char opt, char* input_file, char* output_file, int *cor
 				exit(0);
 		}
 	}
-
-
-
-
-int check_in_and_out_file(char* in_file, char * out_file) {
-
-	if(in_file == NULL){	
+	
+	if(input_file == NULL){	
 		fprintf(stderr,"Needed input file\n");
-		return -1;
-	}
-	
-	if(out_file == NULL){	
-		out_file = (char*)malloc(sizeof("output.jpg")+1);
-		strcpy(out_file, "output.txt\0");
-	}else return -1;
-	
-	return 1;
-}
-
-int main(int argc, char** argv){
-
-	char opt;	
-	char* input_file = NULL;
-	char* output_file = NULL;
-	int corners[N_CORNER];
-	int mode = NORMAL_MODE;
-	int i;
-
-	if(argc < 3){
-		fprintf(stderr,"Too few arguments.\n");
-		help();
 		exit(0);
 	}
-
 	
-	//10 argumets are mandatory
-	while((opt = getopt(argc, argv, "i:c:to:h")) != -1){
-	check_comm_line_par(opt, input_file, output_file, corners, &mode);
+	if(output_file == NULL){	
+		output_file = (char*)malloc(sizeof("output.jpg")+1);
+		strcpy(param.output_file, "output.txt\0");
 	}
-	
-	if(check_in_and_out_file(input_file, output_file)==-1) exit(0);
 	
 	//convert coordinates from percentage to absolute
 	// usare la get_positions_circles
