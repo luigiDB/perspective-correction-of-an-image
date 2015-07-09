@@ -58,7 +58,7 @@ CvPoint2D32f* get_positions_circles(int argc, char **argv, CvMat *img){
 		if((check_bounds(argv[i],&x_tmp)==1) && (check_bounds(argv[i+1],&y_tmp)==1)) {
 			pos_circles[i/2-1].x=(x_tmp*width_img)/100;
 			pos_circles[i/2-1].y=(y_tmp*height_img)/100;
-		}else{
+		} else {
 			fprintf(stderr,"Error: insert number between 1 and 100\n");
 			return NULL;
 		}
@@ -103,11 +103,14 @@ void view_preview(CvMat *img){
 }
 
 int main(int argc, char**argv){
-
-CvMat *img =get_img(argc, argv);
-if(img==NULL) exit(0);
-CvPoint2D32f *pos_circles=get_positions_circles(argc,argv,img);
-if(pos_circles==NULL) exit(0);
-draw_circles(pos_circles,img);
-view_preview(img);
+	CvMat *img =get_img(argc, argv);
+	if(img==NULL) 
+		exit(0);
+		
+	CvPoint2D32f *pos_circles=get_positions_circles(argc,argv,img);
+	if(pos_circles==NULL) 
+		exit(0);
+	
+	draw_circles(pos_circles,img);
+	view_preview(img);
 }
