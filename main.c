@@ -1,10 +1,5 @@
-/*
- * compile with 
- * gcc -g -o main main.c
- */
- 
-//#include "circles.h"
-//#include "transformation.h"
+#include "circles.h"
+#include "transformation.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -37,9 +32,11 @@ int main(int argc, char** argv){
 	char* corners_string_support = NULL;	//needed because strtok() destroy original string
 	int mode = NORMAL_MODE;
 	int i;
+	CvMat *src;
+	CvPoint2D32f *pixel_corners;
 	
 	
-	//10 argumets are mandatory
+	//3 argumets are mandatory
 	if(argc < 3){
 		fprintf(stderr,"Too few argumets.\n");
 		help();
@@ -60,6 +57,12 @@ int main(int argc, char** argv){
 				while (corners_string_support != NULL)
 				{
 					corners[i] = atoi(corners_string_support);
+					
+					if((corners[i] < 0) || (corners[i] > 100)){
+						fprintf(stderr,"%i is not a valid argument.\n", corners[i]);
+						exit(0);
+					}
+					
 					corners_string_support = strtok (NULL, " ,.-");
 					i++;
 				}
@@ -89,19 +92,34 @@ int main(int argc, char** argv){
 	
 	if(output_file == NULL){	
 		output_file = (char*)malloc(sizeof("output.jpg")+1);
-		strcpy(param.output_file, "output.txt\0");
+		strcpy(param.output_file, "output.jpg\0");
 	}
 	
-	//convert coordinates from percentage to absolute
-	// usare la get_positions_circles
-	//che deve essere modificata per leggere un array di interi
+	
+	//evaluate pixel coordinates
+	src = cvLoadImageM( input, 1);
+	if(src==NULL){
+		fprintf(stderr,"error loading image\n");
+		exit(0);
+	}
+	pixel_corners = get_positions_circles(corners,src); //////////////////////il primo argomento è il vettore di int
+	free(src);
+	
 	
 	if( mode == NORMAL_MODE ){
 		//call transformation
-		//ret = transformation(input_file, output_file, corners);
+		ret = transformation(input_file, output_file, pixel_corners);
+		if(ret != 0){
+			fprintf(stderr,"Some error\n");
+			exit(0);
+		}
 	} else {
 		//call circles
-		//ret = circles(input_file, corners);
+		//ret = circles(input_file, pixel_corners);
+		/*if(ret != 0){
+			fprintf(stderr,"Some error\n");
+			exit(0);
+		}*/
 	}
 	
 	free(output_file);
