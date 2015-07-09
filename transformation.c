@@ -5,6 +5,7 @@ void homography_transformation(IplImage* src, CvPoint2D32f* srcQuad,char* out_fi
 	CvPoint2D32f dstQuad[4]; //Destination matrix
     CvMat* warp_matrix = cvCreateMat(3,3,CV_32FC1);     // transformation matrix
     IplImage* dst = cvCloneImage(src);   // clone image  
+    
     dstQuad[0].x = 0;       //dst Top left
     dstQuad[0].y = 0;
     dstQuad[1].x = src->width-1;  //dst Top right
@@ -37,14 +38,21 @@ int homography( char* input, char* output, CvPoint2D32f* srcQuad ) {
 	
 	//Check on src
 	if(input == NULL){
-		fprintf(stderr,"%s input file not present\n",filename);
+		fprintf(stderr,"input file not present\n");
 		return 1;
 	}
 	
 	if(output == NULL){
 		output = (char*)malloc(sizeof("output.jpg")+1);
-		output = 
+		output = "output.jpg";
+	}
+	
+	if(srcQuad == NULL){
+		fprintf(stderr,"source matrix not present\n");
+		return 1;
 	}
 
 	homography_transformation(src,srcQuad,output);
+	
+	return 0;
 }
