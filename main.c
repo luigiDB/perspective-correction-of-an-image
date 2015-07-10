@@ -32,8 +32,9 @@ int main(int argc, char** argv){
 	char* corners_string_support = NULL;	//needed because strtok() destroy original string
 	int mode = NORMAL_MODE;
 	int i;
-	CvMat *src;
-	CvPoint2D32f *pixel_corners;
+	int ret;
+	CvMat *src = NULL;
+	CvPoint2D32f *pixel_corners = NULL;
 	
 	
 	//3 argumets are mandatory
@@ -92,37 +93,40 @@ int main(int argc, char** argv){
 	
 	if(output_file == NULL){	
 		output_file = (char*)malloc(sizeof("output.jpg")+1);
-		strcpy(param.output_file, "output.jpg\0");
+		strcpy(output_file, "output.jpg\0");
 	}
 	
 	
 	//evaluate pixel coordinates
-	src = cvLoadImageM( input, 1);
-	if(src==NULL){
-		fprintf(stderr,"error loading image\n");
+	src = cvLoadImageM(input_file, 1);
+	if(src == NULL){
+		fprintf(stderr,"Error in loading image\n");
 		exit(0);
 	}
-	pixel_corners = get_positions_circles(corners,src); //////////////////////il primo argomento è il vettore di int
-	free(src);
+	
+	//pixel_corners = get_positions_circles(corners,src); //////////////////////il primo argomento è il vettore di int
 	
 	
 	if( mode == NORMAL_MODE ){
 		//call transformation
-		ret = transformation(input_file, output_file, pixel_corners);
+		ret = homography_transformation(src, output_file, pixel_corners);
 		if(ret != 0){
-			fprintf(stderr,"Some error\n");
+			fprintf(stderr,"Some error in homography transformation\n");
 			exit(0);
 		}
 	} else {
 		//call circles
-		//ret = circles(input_file, pixel_corners);
+		//ret = circles(src, pixel_corners);
 		/*if(ret != 0){
 			fprintf(stderr,"Some error\n");
 			exit(0);
 		}*/
 	}
 	
+	cvReleaseMat(&src);
 	free(output_file);
-	
+	free(input_file);
+	free(corners_string);
+	free(corners_string_support);
 	return 0;
 }

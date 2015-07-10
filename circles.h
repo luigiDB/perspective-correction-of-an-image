@@ -18,10 +18,13 @@ Execute: ./circles IMG_2348.JPG 30 25 70 25 25 70 75 75
 #include <stdio.h>
 
 #define N_CIRCLES 4
-#define JPEG_QUALITY 50
 #define RED cvScalar(0,0,255,0)
+#ifndef JPEG_QUALITY
 
-const int PARAMETERS[3]={CV_IMWRITE_JPEG_QUALITY,JPEG_QUALITY,0};
+	#define JPEG_QUALITY 50
+	
+#endif
+
 
 int check_bounds(char* bound_char, int *a);
 CvMat *get_img(int argc, char **argv);

@@ -39,7 +39,7 @@ CvMat *get_img(int argc, char **argv){
 CvPoint2D32f* get_positions_circles(int argc, char **argv, CvMat *img){
 
 	CvPoint2D32f *pos_circles=calloc(N_CIRCLES,sizeof(CvPoint2D32f));
-	char* in_file=NULL;
+	//char* in_file=NULL;
 	int height_img;
 	int width_img;
 	int x_tmp=0;
@@ -102,6 +102,7 @@ void view_preview(CvMat *img){
 	cvDestroyWindow("Preview" );
 }
 
+/*
 int main(int argc, char**argv){
 	CvMat *img =get_img(argc, argv);
 	if(img==NULL) 
@@ -113,4 +114,5 @@ int main(int argc, char**argv){
 	
 	draw_circles(pos_circles,img);
 	view_preview(img);
-}
+	return 0;
+}*/

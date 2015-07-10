@@ -26,10 +26,11 @@ Where RMR5y.png is the input file and ciao.jpg is the output file.
 #include <stdlib.h>
 #include <stdio.h>
 
+#ifndef JPEG_QUALITY
 
-#define AUTO_SIZE_YES 1
 #define JPEG_QUALITY 80
+	
+#endif
 
 
-void homography_transformation(IplImage* src, CvPoint2D32f* srcQuad,char* out_filename);
-int homography( char* input, char* output, CvPoint2D32f* srcQuad );
+int homography_transformation(CvMat* src, char* out_filename, CvPoint2D32f* srcQuad);
