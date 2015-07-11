@@ -22,7 +22,7 @@ Where RMR5y.png is the input file and ciao.jpg is the output file.
 
 
 #include <opencv/highgui.h>
-//#include <opencv/cv.h>
+#include <opencv/cv.h>
 #include <stdlib.h>
 #include <stdio.h>
 

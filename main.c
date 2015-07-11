@@ -1,5 +1,5 @@
-#include "circles.c"
-#include "transformation.c"
+#include "circles.h"
+#include "transformation.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -95,25 +95,25 @@ int main(int argc, char** argv){
 	
 	while((opt = getopt(argc, argv, "i:c:to:h")) != -1){
 	
-	switch(opt){
-		
-		case 'i':
-			input_file = strdup(optarg);
-			break;
+		switch(opt){
+			
+			case 'i':
+				input_file = strdup(optarg);
+				break;
 
-		case 'c':
-			corners_string = strdup(optarg);
-			corners_string_support = strtok(corners_string,",");
-			i = 0;
-			while (corners_string_support != NULL){
-				corners[i] = atoi(corners_string_support);
-				if((corners[i] < 0) || (corners[i] > 100)){
-					fprintf(stderr,"%i is not a valid argument.\n", corners[i]);
-					exit(0);
+			case 'c':
+				corners_string = strdup(optarg);
+				corners_string_support = strtok(corners_string,",");
+				i = 0;
+				while (corners_string_support != NULL){
+					corners[i] = atoi(corners_string_support);
+					if((corners[i] < 0) || (corners[i] > 100)){
+						fprintf(stderr,"%i is not a valid argument.\n", corners[i]);
+						exit(0);
 					}
 
-				corners_string_support = strtok (NULL, " ,.-");
-				i++;
+					corners_string_support = strtok (NULL, " ,.-");
+					i++;
 				}
 
 				if(i != N_CORNER){
