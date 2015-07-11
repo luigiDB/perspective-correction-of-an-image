@@ -30,7 +30,9 @@ Where RMR5y.png is the input file and ciao.jpg is the output file.
 
 #define JPEG_QUALITY 80
 	
+int homography_transformation(CvMat* src, char* out_filename, CvPoint2D32f* srcQuad);
+
 #endif
 
 
-int homography_transformation(CvMat* src, char* out_filename, CvPoint2D32f* srcQuad);
+

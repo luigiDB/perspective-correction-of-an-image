@@ -1,10 +1,9 @@
-#include "circles.h"
-#include "transformation.h"
+#include "circles.c"
+#include "transformation.c"
 
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 
@@ -22,6 +21,55 @@ void help(){
         
 	fprintf(stderr,"%s", options_msg);		
 }
+
+/* Avevo implementato questa funzione per il controllo dei parametri di input alla command line. 
+//Se non è problematica la possiamo usare. 
+int check_line_command_input(char opt, char** input_file, char** output_file, int *corners, int *mode){
+	char* corners_string = NULL;
+
+	switch(opt){
+		case 'i':
+			*input_file = strdup(optarg);
+			break;
+		case 'c':
+			
+			corners_string = strdup(optarg);
+			corners_string_support = strtok(corners_string,",");
+			
+			i = 0;
+			while (corners_string_support != NULL)
+			{
+			corners[i] = atoi(corners_string_support);
+			
+			if((corners[i] < 0) || (corners[i] > 100)){
+				fprintf(stderr,"%i is not a valid argument.\n", corners[i]);
+				return -1;
+				}
+					
+				corners_string_support = strtok (NULL, " ,.-");
+				i++;
+				}
+				if(i != N_CORNER){
+					return -1;
+				}
+				break;
+			case 't':
+				*mode = TEST_MODE;
+				break;
+			case 'o':
+				*output_file = strdup(optarg);
+				break;
+			case 'h':
+				help();
+				break;
+			default:
+				help();
+				return -1;
+		}
+	return 1;
+	}
+
+*/
 
 int main(int argc, char** argv){
 	char opt;
@@ -46,40 +94,45 @@ int main(int argc, char** argv){
 	
 	
 	while((opt = getopt(argc, argv, "i:c:to:h")) != -1){
-		switch(opt){
-			case 'i':
-				input_file = strdup(optarg);
-				break;
-			case 'c':
-				corners_string = strdup(optarg);
-				corners_string_support = strtok(corners_string,",");
-				
-				i = 0;
-				while (corners_string_support != NULL)
-				{
-					corners[i] = atoi(corners_string_support);
-					
-					if((corners[i] < 0) || (corners[i] > 100)){
-						fprintf(stderr,"%i is not a valid argument.\n", corners[i]);
-						exit(0);
+	
+	switch(opt){
+		
+		case 'i':
+			input_file = strdup(optarg);
+			break;
+
+		case 'c':
+			corners_string = strdup(optarg);
+			corners_string_support = strtok(corners_string,",");
+			i = 0;
+			while (corners_string_support != NULL){
+				corners[i] = atoi(corners_string_support);
+				if((corners[i] < 0) || (corners[i] > 100)){
+					fprintf(stderr,"%i is not a valid argument.\n", corners[i]);
+					exit(0);
 					}
-					
-					corners_string_support = strtok (NULL, " ,.-");
-					i++;
+
+				corners_string_support = strtok (NULL, " ,.-");
+				i++;
 				}
+
 				if(i != N_CORNER){
 					exit(0);
 				}
 				break;
+
 			case 't':
 				mode = TEST_MODE;
 				break;
+
 			case 'o':
 				output_file = strdup(optarg);
 				break;
+
 			case 'h':
 				help();
 				break;
+
 			default:
 				help();
 				exit(0);
@@ -104,9 +157,11 @@ int main(int argc, char** argv){
 		exit(0);
 	}
 	
-	//pixel_corners = get_positions_circles(corners,src); //////////////////////il primo argomento è il vettore di int
 	
+	//Il primo argomento è il vettore di int, il secondo l'immagine
+	pixel_corners = get_positions_circles(corners,src); 
 	
+
 	if( mode == NORMAL_MODE ){
 		//call transformation
 		ret = homography_transformation(src, output_file, pixel_corners);
@@ -115,13 +170,9 @@ int main(int argc, char** argv){
 			exit(0);
 		}
 	} else {
-		//call circles
-		//ret = circles(src, pixel_corners);
-		/*if(ret != 0){
-			fprintf(stderr,"Some error\n");
-			exit(0);
-		}*/
-	}
+		draw_circles(pixel_corners, src);
+		view_preview(src);
+		}
 	
 	cvReleaseMat(&src);
 	free(output_file);
