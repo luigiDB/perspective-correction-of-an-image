@@ -48,6 +48,7 @@ void draw_circles(CvPoint2D32f *pos_circles, CvMat *img){
 //Print on video the image with the circles on it.
 void view_preview(CvMat *img){
 	cvNamedWindow( "Preview", CV_WINDOW_NORMAL );
+	cvResizeWindow("Preview", 400, 800);
 	cvShowImage( "Preview", img );
 	cvWaitKey(0);
 	cvDestroyWindow("Preview" );
